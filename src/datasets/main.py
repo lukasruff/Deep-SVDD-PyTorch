@@ -1,9 +1,9 @@
-from datasets.mnist import MNIST_Dataset
-from datasets.cifar10 import CIFAR10_Dataset
+from .mnist import MNIST_Dataset
+from .cifar10 import CIFAR10_Dataset
 
 
 def load_dataset(dataset_name):
-    """Loads dataset."""
+    """Loads the dataset."""
 
     data_root = '../data'
 
@@ -11,6 +11,7 @@ def load_dataset(dataset_name):
     assert dataset_name in implemented_datasets
 
     dataset = None
+
     if dataset_name == 'mnist':
         dataset = MNIST_Dataset(root=data_root)
 

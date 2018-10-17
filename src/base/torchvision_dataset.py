@@ -1,12 +1,14 @@
-from .base import MyDataset
+from .base_dataset import BaseDataset
 from torch.utils.data import DataLoader
 
 
-class TorchvisionDataset(MyDataset):
+class TorchvisionDataset(BaseDataset):
     """TorchvisionDataset class for datasets already implemented in torchvision.datasets."""
 
     def __init__(self, root: str):
         super().__init__(root)
+        self.train_set = None
+        self.test_set = None
 
     def loaders(self, batch_size: int, shuffle_train=True, shuffle_test=False, num_workers: int = 0) -> (
             DataLoader, DataLoader):
