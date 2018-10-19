@@ -9,6 +9,7 @@ class BaseModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.rep_dim = None  # representation dimensionality, i.e. dim of the last layer
 
     def forward(self, *input):
         """
