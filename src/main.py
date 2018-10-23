@@ -17,6 +17,9 @@ def main(dataset_name, model_name):
     deep_SVDD = DeepSVDD()
     deep_SVDD.set_model(model_name)
 
+    # Pretrain model on datasets (via autoencoder)
+    deep_SVDD.pretrain(dataset, optimizer_name='adam', lr=0.001, n_epochs=50, batch_size=200)
+
     # Train model on dataset
     deep_SVDD.train(dataset, optimizer_name='adam', lr=0.0001, n_epochs=25, batch_size=200)
     deep_SVDD.test(dataset)
