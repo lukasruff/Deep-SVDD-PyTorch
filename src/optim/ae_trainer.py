@@ -1,6 +1,6 @@
 from base.base_trainer import BaseTrainer
 from base.base_dataset import BaseADDataset
-from base.base_model import BaseModel
+from base.base_net import BaseNet
 from sklearn.metrics import roc_auc_score
 
 import torch
@@ -15,7 +15,7 @@ class AETrainer(BaseTrainer):
                  n_jobs_dataloader: int = 0):
         super().__init__(optimizer_name, lr, n_epochs, batch_size, n_jobs_dataloader)
 
-    def train(self, dataset: BaseADDataset, ae_model: BaseModel):
+    def train(self, dataset: BaseADDataset, ae_net: BaseNet):
 
         train_loader, _ = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
@@ -25,11 +25,11 @@ class AETrainer(BaseTrainer):
 
         # Set optimizer
         # TODO: Implement choice of different optimizers ('sgd', 'momentum', 'nesterov', etc.)
-        optimizer = optim.Adam(ae_model.parameters(), lr=self.lr)  # Adam optimizer for now
+        optimizer = optim.Adam(ae_net.parameters(), lr=self.lr)  # Adam optimizer for now
 
         # Training
         print('Starting training.')
-        ae_model.train()
+        ae_net.train()
         for epoch in range(self.n_epochs):
 
             loss_epoch = 0.0
@@ -41,7 +41,7 @@ class AETrainer(BaseTrainer):
                 optimizer.zero_grad()
 
                 # Update network parameters via backpropagation: forward + backward + optimize
-                outputs = ae_model(inputs)
+                outputs = ae_net(inputs)
                 loss = criterion(outputs, inputs)
                 loss.backward()
                 optimizer.step()
@@ -54,9 +54,9 @@ class AETrainer(BaseTrainer):
 
         print('Finished Training.')
 
-        return ae_model
+        return ae_net
 
-    def test(self, dataset: BaseADDataset, ae_model: BaseModel):
+    def test(self, dataset: BaseADDataset, ae_net: BaseNet):
 
         _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
@@ -66,11 +66,11 @@ class AETrainer(BaseTrainer):
         # Testing
         print('Starting testing.')
         idx_label_score = []
-        ae_model.eval()
+        ae_net.eval()
         with torch.no_grad():
             for data in test_loader:
                 inputs, labels, idx = data
-                outputs = ae_model(inputs)
+                outputs = ae_net(inputs)
                 # compute reconstruction errors
                 scores = torch.sum(criterion(outputs, inputs), dim=tuple(range(outputs.dim()))[1:])
 

@@ -3,8 +3,8 @@ import torch.nn as nn
 import numpy as np
 
 
-class BaseModel(nn.Module):
-    """Base class for all models."""
+class BaseNet(nn.Module):
+    """Base class for all neural networks."""
 
     def __init__(self):
         super().__init__()
@@ -14,13 +14,13 @@ class BaseModel(nn.Module):
     def forward(self, *input):
         """
         Forward pass logic
-        :return: Model output
+        :return: Network output
         """
         raise NotImplementedError
 
     def summary(self):
-        """Model summary."""
-        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
-        params = sum([np.prod(p.size()) for p in model_parameters])
+        """Network summary."""
+        net_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        params = sum([np.prod(p.size()) for p in net_parameters])
         self.logger.info('Trainable parameters: {}'.format(params))
         self.logger.info(self)

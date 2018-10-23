@@ -1,6 +1,6 @@
 from base.base_trainer import BaseTrainer
 from base.base_dataset import BaseADDataset
-from base.base_model import BaseModel
+from base.base_net import BaseNet
 from torch.utils.data.dataloader import DataLoader
 from sklearn.metrics import roc_auc_score
 
@@ -23,16 +23,16 @@ class DeepSVDDTrainer(BaseTrainer):
         self.c = None
         self.R = None
 
-    def train(self, dataset: BaseADDataset, model: BaseModel):
+    def train(self, dataset: BaseADDataset, net: BaseNet):
 
         train_loader, _ = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
         # Set optimizer
         # TODO: Implement choice of different optimizers ('sgd', 'momentum', 'nesterov', etc.)
-        optimizer = optim.Adam(model.parameters(), lr=self.lr)  # Adam optimizer for now
+        optimizer = optim.Adam(net.parameters(), lr=self.lr)  # Adam optimizer for now
 
         # Initialize hypersphere center c
-        self.c = init_center_c(train_loader, model)
+        self.c = init_center_c(train_loader, net)
 
         # Initialize hypersphere radius R with 0 for soft-boundary DeepSVDD
         if self.objective == 'soft-boundary':
@@ -40,7 +40,7 @@ class DeepSVDDTrainer(BaseTrainer):
 
         # Training
         print('Starting training.')
-        model.train()
+        net.train()
         for epoch in range(self.n_epochs):
 
             loss_epoch = 0.0
@@ -52,7 +52,7 @@ class DeepSVDDTrainer(BaseTrainer):
                 optimizer.zero_grad()
 
                 # Update network parameters via backpropagation: forward + backward + optimize
-                outputs = model(inputs)
+                outputs = net(inputs)
                 dist = torch.sum((outputs - self.c) ** 2, dim=1)
                 if self.objective == 'soft-boundary':
                     scores = dist - self.R ** 2
@@ -74,20 +74,20 @@ class DeepSVDDTrainer(BaseTrainer):
 
         print('Finished Training.')
 
-        return model
+        return net
 
-    def test(self, dataset: BaseADDataset, model: BaseModel):
+    def test(self, dataset: BaseADDataset, net: BaseNet):
 
         _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
         # Testing
         print('Starting testing.')
         idx_label_score = []
-        model.eval()
+        net.eval()
         with torch.no_grad():
             for data in test_loader:
                 inputs, labels, idx = data
-                outputs = model(inputs)
+                outputs = net(inputs)
                 dist = torch.sum((outputs - self.c) ** 2, dim=1)
                 if self.objective == 'soft-boundary':
                     scores = dist - self.R ** 2
@@ -110,20 +110,20 @@ class DeepSVDDTrainer(BaseTrainer):
         print('Finished testing.')
 
 
-def init_center_c(train_loader: DataLoader, model: BaseModel, eps=0.1):
+def init_center_c(train_loader: DataLoader, net: BaseNet, eps=0.1):
     """Initialize hypersphere center c as the mean from an initial forward pass on the data."""
 
     print('Initializing center c...')
 
     n_samples = 0
-    c = torch.zeros(model.rep_dim)
+    c = torch.zeros(net.rep_dim)
 
-    model.eval()
+    net.eval()
     with torch.no_grad():
         for data in train_loader:
             # get the inputs of the batch
             inputs, _, _ = data
-            outputs = model(inputs)
+            outputs = net(inputs)
             n_samples += outputs.shape[0]
             c += torch.sum(outputs, dim=0)
 

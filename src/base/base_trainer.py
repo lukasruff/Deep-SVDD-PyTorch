@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from .base_dataset import BaseADDataset
-from .base_model import BaseModel
+from .base_net import BaseNet
 
 
 class BaseTrainer(ABC):
@@ -15,16 +15,16 @@ class BaseTrainer(ABC):
         self.n_jobs_dataloader = n_jobs_dataloader
 
     @abstractmethod
-    def train(self, dataset: BaseADDataset, model: BaseModel) -> BaseModel:
+    def train(self, dataset: BaseADDataset, net: BaseNet) -> BaseNet:
         """
-        Implement train method that trains the given model using the train_set of dataset.
-        :return: Trained model
+        Implement train method that trains the given network using the train_set of dataset.
+        :return: Trained net
         """
         pass
 
     @abstractmethod
-    def test(self, dataset: BaseADDataset, model: BaseModel):
+    def test(self, dataset: BaseADDataset, net: BaseNet):
         """
-        Implement test method that evaluates the test_set of dataset on the given model.
+        Implement test method that evaluates the test_set of dataset on the given network.
         """
         pass

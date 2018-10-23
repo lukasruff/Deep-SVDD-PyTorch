@@ -1,10 +1,10 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from base.base_model import BaseModel
+from base.base_net import BaseNet
 
 
-class CIFAR10_LeNet(BaseModel):
+class CIFAR10_LeNet(BaseNet):
 
     def __init__(self):
         super().__init__()

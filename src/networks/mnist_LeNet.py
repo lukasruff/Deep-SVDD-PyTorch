@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from base.base_model import BaseModel
+from base.base_net import BaseNet
 
 
-class MNIST_LeNet(BaseModel):
+class MNIST_LeNet(BaseNet):
 
     def __init__(self):
         super().__init__()
@@ -32,7 +32,7 @@ class MNIST_LeNet(BaseModel):
         return x
 
 
-class MNIST_LeNet_Autoencoder(BaseModel):
+class MNIST_LeNet_Autoencoder(BaseNet):
 
     def __init__(self):
         super().__init__()
