@@ -12,10 +12,13 @@ import numpy as np
 class AETrainer(BaseTrainer):
 
     def __init__(self, optimizer_name: str, lr: float = 0.001, n_epochs: int = 150, batch_size: int = 128,
-                 weight_decay: float = 1e-6, n_jobs_dataloader: int = 0):
-        super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, n_jobs_dataloader)
+                 weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
+        super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, device, n_jobs_dataloader)
 
     def train(self, dataset: BaseADDataset, ae_net: BaseNet):
+
+        # Set device for network
+        ae_net = ae_net.to(self.device)
 
         train_loader, _ = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
@@ -23,9 +26,8 @@ class AETrainer(BaseTrainer):
         # TODO: Implement choice of different losses (MSE, CrossEntropyLoss)
         criterion = nn.MSELoss()
 
-        # Set optimizer
-        # TODO: Implement choice of different optimizers ('sgd', 'momentum', 'nesterov', etc.)
-        optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)  # Adam optimizer for now
+        # Set optimizer (Adam optimizer for now)
+        optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Training
         print('Starting training.')
@@ -57,6 +59,9 @@ class AETrainer(BaseTrainer):
         return ae_net
 
     def test(self, dataset: BaseADDataset, ae_net: BaseNet):
+
+        # Set device for network
+        ae_net = ae_net.to(self.device)
 
         _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 

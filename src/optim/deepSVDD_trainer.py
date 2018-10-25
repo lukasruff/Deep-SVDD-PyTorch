@@ -12,8 +12,8 @@ import numpy as np
 class DeepSVDDTrainer(BaseTrainer):
 
     def __init__(self, objective, optimizer_name: str, lr: float = 0.001, n_epochs: int = 150, batch_size: int = 128,
-                 weight_decay: float = 1e-6, n_jobs_dataloader: int = 0, nu: float = 0.1):
-        super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, n_jobs_dataloader)
+                 weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0, nu: float = 0.1):
+        super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, device, n_jobs_dataloader)
 
         assert objective in ('one-class', 'soft-boundary'), "Objective must be either 'one-class' or 'soft-boundary'."
         self.objective = objective
@@ -25,18 +25,20 @@ class DeepSVDDTrainer(BaseTrainer):
 
     def train(self, dataset: BaseADDataset, net: BaseNet):
 
+        # Set device for network
+        net = net.to(self.device)
+
         train_loader, _ = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
-        # Set optimizer
-        # TODO: Implement choice of different optimizers ('sgd', 'momentum', 'nesterov', etc.)
-        optimizer = optim.Adam(net.parameters(), lr=self.lr, weight_decay=self.weight_decay)  # Adam optimizer for now
+        # Set optimizer (Adam optimizer for now)
+        optimizer = optim.Adam(net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Initialize hypersphere center c
-        self.c = init_center_c(train_loader, net)
+        self.c = self.init_center_c(train_loader, net)
 
         # Initialize hypersphere radius R with 0 for soft-boundary DeepSVDD
         if self.objective == 'soft-boundary':
-            self.R = torch.tensor(0.0)
+            self.R = torch.tensor(0.0, device=self.device)
 
         # Training
         print('Starting training.')
@@ -64,7 +66,7 @@ class DeepSVDDTrainer(BaseTrainer):
 
                 # Update hypersphere radius R on mini-batch distances
                 if self.objective == 'soft-boundary':
-                    self.R.data = torch.tensor(get_radius(dist, self.nu))
+                    self.R.data = torch.tensor(get_radius(dist, self.nu), device=self.device)
 
                 loss_epoch += loss.item()
                 n_batches += 1
@@ -77,6 +79,9 @@ class DeepSVDDTrainer(BaseTrainer):
         return net
 
     def test(self, dataset: BaseADDataset, net: BaseNet):
+
+        # Set device for network
+        net = net.to(self.device)
 
         _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
@@ -109,31 +114,30 @@ class DeepSVDDTrainer(BaseTrainer):
 
         print('Finished testing.')
 
+    def init_center_c(self, train_loader: DataLoader, net: BaseNet, eps=0.1):
+        """Initialize hypersphere center c as the mean from an initial forward pass on the data."""
 
-def init_center_c(train_loader: DataLoader, net: BaseNet, eps=0.1):
-    """Initialize hypersphere center c as the mean from an initial forward pass on the data."""
+        print('Initializing center c...')
 
-    print('Initializing center c...')
+        n_samples = 0
+        c = torch.zeros(net.rep_dim, device=self.device)
 
-    n_samples = 0
-    c = torch.zeros(net.rep_dim)
+        net.eval()
+        with torch.no_grad():
+            for data in train_loader:
+                # get the inputs of the batch
+                inputs, _, _ = data
+                outputs = net(inputs)
+                n_samples += outputs.shape[0]
+                c += torch.sum(outputs, dim=0)
 
-    net.eval()
-    with torch.no_grad():
-        for data in train_loader:
-            # get the inputs of the batch
-            inputs, _, _ = data
-            outputs = net(inputs)
-            n_samples += outputs.shape[0]
-            c += torch.sum(outputs, dim=0)
+        c /= n_samples
 
-    c /= n_samples
+        # TODO: Make sure elements of center c are not initialized too close to 0 using eps?
 
-    # TODO: Make sure elements of center c are not initialized too close to 0 using eps?
+        print("Center c initialized.")
 
-    print("Center c initialized.")
-
-    return c
+        return c
 
 
 def get_radius(dist: torch.Tensor, nu: float):

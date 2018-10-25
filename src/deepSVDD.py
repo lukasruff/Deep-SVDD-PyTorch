@@ -47,21 +47,22 @@ class DeepSVDD(object):
         self.net = build_network(net_name)
 
     def train(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 50,
-              batch_size: int = 128, weight_decay: float = 1e-6, n_jobs_dataloader: int = 0):
+              batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
         """Trains the Deep SVDD model on the training data."""
 
         self.optimizer_name = optimizer_name
         self.trainer = DeepSVDDTrainer(self.objective, optimizer_name, lr=lr, n_epochs=n_epochs, batch_size=batch_size,
-                                       weight_decay=weight_decay, n_jobs_dataloader=n_jobs_dataloader, nu=self.nu)
+                                       weight_decay=weight_decay, device=device, n_jobs_dataloader=n_jobs_dataloader,
+                                       nu=self.nu)
         self.net = self.trainer.train(dataset, self.net)
 
     def pretrain(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
-                 batch_size: int = 128, weight_decay: float = 1e-6, n_jobs_dataloader: int = 0):
+                 batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
 
         self.ae_net = build_autoencoder(self.net_name)
         self.ae_optimizer_name = optimizer_name
         self.ae_trainer = AETrainer(optimizer_name, lr=lr, n_epochs=n_epochs, batch_size=batch_size,
-                                    weight_decay=weight_decay, n_jobs_dataloader=n_jobs_dataloader)
+                                    weight_decay=weight_decay, device=device, n_jobs_dataloader=n_jobs_dataloader)
         self.ae_net = self.ae_trainer.train(dataset, self.ae_net)
         self.ae_trainer.test(dataset, self.ae_net)
 
