@@ -12,8 +12,8 @@ import numpy as np
 class AETrainer(BaseTrainer):
 
     def __init__(self, optimizer_name: str, lr: float = 0.001, n_epochs: int = 150, batch_size: int = 128,
-                 n_jobs_dataloader: int = 0):
-        super().__init__(optimizer_name, lr, n_epochs, batch_size, n_jobs_dataloader)
+                 weight_decay: float = 1e-6, n_jobs_dataloader: int = 0):
+        super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, n_jobs_dataloader)
 
     def train(self, dataset: BaseADDataset, ae_net: BaseNet):
 
@@ -25,7 +25,7 @@ class AETrainer(BaseTrainer):
 
         # Set optimizer
         # TODO: Implement choice of different optimizers ('sgd', 'momentum', 'nesterov', etc.)
-        optimizer = optim.Adam(ae_net.parameters(), lr=self.lr)  # Adam optimizer for now
+        optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)  # Adam optimizer for now
 
         # Training
         print('Starting training.')

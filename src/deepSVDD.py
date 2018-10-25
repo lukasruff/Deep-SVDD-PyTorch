@@ -33,11 +33,11 @@ class DeepSVDD(object):
 
         self.net_name = None
         self.net = None  # neural network \phi
-        self.ae_net = None  # autoencoder network for pretraining
 
         self.trainer = None
         self.optimizer_name = None
 
+        self.ae_net = None  # autoencoder network for pretraining
         self.ae_trainer = None
         self.ae_optimizer_name = None
 
@@ -46,30 +46,37 @@ class DeepSVDD(object):
         self.net_name = net_name
         self.net = build_network(net_name)
 
-    def train(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
-              batch_size: int = 128):
+    def train(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 50,
+              batch_size: int = 128, weight_decay: float = 1e-6, n_jobs_dataloader: int = 0):
         """Trains the Deep SVDD model on the training data."""
 
         self.optimizer_name = optimizer_name
-
-        self.trainer = DeepSVDDTrainer(self.objective, optimizer_name,
-                                       lr=lr, n_epochs=n_epochs, batch_size=batch_size, nu=self.nu)
-
+        self.trainer = DeepSVDDTrainer(self.objective, optimizer_name, lr=lr, n_epochs=n_epochs, batch_size=batch_size,
+                                       weight_decay=weight_decay, n_jobs_dataloader=n_jobs_dataloader, nu=self.nu)
         self.net = self.trainer.train(dataset, self.net)
 
-    def pretrain(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150,
-                 batch_size: int = 128):
+    def pretrain(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
+                 batch_size: int = 128, weight_decay: float = 1e-6, n_jobs_dataloader: int = 0):
 
         self.ae_net = build_autoencoder(self.net_name)
-
         self.ae_optimizer_name = optimizer_name
-
-        self.ae_trainer = AETrainer(optimizer_name, lr=lr, n_epochs=n_epochs, batch_size=batch_size)
+        self.ae_trainer = AETrainer(optimizer_name, lr=lr, n_epochs=n_epochs, batch_size=batch_size,
+                                    weight_decay=weight_decay, n_jobs_dataloader=n_jobs_dataloader)
         self.ae_net = self.ae_trainer.train(dataset, self.ae_net)
-
         self.ae_trainer.test(dataset, self.ae_net)
 
     def test(self, dataset: BaseADDataset):
         """Tests the Deep SVDD model on the test data."""
 
         self.trainer.test(dataset, self.net)
+
+    def save_model(self, xp_path):
+        """Save Deep SVDD model to xp_path."""
+        # Make save_ae an argument
+        pass
+
+    def load_model(self, model_path):
+        """Load Deep SVDD model from model_path."""
+        # Write such that this could be an AE network or Deep SVDD network
+        # Make load_ae an argument
+        pass

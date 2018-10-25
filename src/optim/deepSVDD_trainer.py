@@ -12,8 +12,8 @@ import numpy as np
 class DeepSVDDTrainer(BaseTrainer):
 
     def __init__(self, objective, optimizer_name: str, lr: float = 0.001, n_epochs: int = 150, batch_size: int = 128,
-                 nu: float = 0.1, n_jobs_dataloader: int = 0):
-        super().__init__(optimizer_name, lr, n_epochs, batch_size, n_jobs_dataloader)
+                 weight_decay: float = 1e-6, n_jobs_dataloader: int = 0, nu: float = 0.1):
+        super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, n_jobs_dataloader)
 
         assert objective in ('one-class', 'soft-boundary'), "Objective must be either 'one-class' or 'soft-boundary'."
         self.objective = objective
@@ -29,7 +29,7 @@ class DeepSVDDTrainer(BaseTrainer):
 
         # Set optimizer
         # TODO: Implement choice of different optimizers ('sgd', 'momentum', 'nesterov', etc.)
-        optimizer = optim.Adam(net.parameters(), lr=self.lr)  # Adam optimizer for now
+        optimizer = optim.Adam(net.parameters(), lr=self.lr, weight_decay=self.weight_decay)  # Adam optimizer for now
 
         # Initialize hypersphere center c
         self.c = init_center_c(train_loader, net)
