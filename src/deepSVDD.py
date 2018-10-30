@@ -1,3 +1,5 @@
+import torch
+
 from base.base_dataset import BaseADDataset
 from networks.main import build_network, build_autoencoder
 from optim.deepSVDD_trainer import DeepSVDDTrainer
@@ -28,7 +30,7 @@ class DeepSVDD(object):
         self.objective = objective
         assert (0 < nu) & (nu <= 1), "For hyperparameter nu, it must hold: 0 < nu <= 1."
         self.nu = nu
-        self.R = 0  # hypersphere radius R
+        self.R = 0.0  # hypersphere radius R
         self.c = None  # hypersphere center c
 
         self.net_name = None
@@ -51,13 +53,25 @@ class DeepSVDD(object):
         """Trains the Deep SVDD model on the training data."""
 
         self.optimizer_name = optimizer_name
-        self.trainer = DeepSVDDTrainer(self.objective, optimizer_name, lr=lr, n_epochs=n_epochs, batch_size=batch_size,
-                                       weight_decay=weight_decay, device=device, n_jobs_dataloader=n_jobs_dataloader,
-                                       nu=self.nu)
+        self.trainer = DeepSVDDTrainer(self.objective, self.R, self.c, self.nu, optimizer_name, lr=lr,
+                                       n_epochs=n_epochs, batch_size=batch_size, weight_decay=weight_decay,
+                                       device=device, n_jobs_dataloader=n_jobs_dataloader)
         self.net = self.trainer.train(dataset, self.net)
+        self.R = float(self.trainer.R.data.numpy())  # get float
+        self.c = self.trainer.c.data.numpy().tolist()  # get list
+
+    def test(self, dataset: BaseADDataset, device: str = 'cuda', n_jobs_dataloader: int = 0):
+        """Tests the Deep SVDD model on the test data."""
+
+        if self.trainer is None:
+            self.trainer = DeepSVDDTrainer(self.objective, self.R, self.c, self.nu,
+                                           device=device, n_jobs_dataloader=n_jobs_dataloader)
+
+        self.trainer.test(dataset, self.net)
 
     def pretrain(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
                  batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
+        """Pretrains the weights for the Deep SVDD network \phi via autoencoder."""
 
         self.ae_net = build_autoencoder(self.net_name)
         self.ae_optimizer_name = optimizer_name
@@ -65,19 +79,41 @@ class DeepSVDD(object):
                                     weight_decay=weight_decay, device=device, n_jobs_dataloader=n_jobs_dataloader)
         self.ae_net = self.ae_trainer.train(dataset, self.ae_net)
         self.ae_trainer.test(dataset, self.ae_net)
+        self.init_network_weights_from_pretraining()
 
-    def test(self, dataset: BaseADDataset):
-        """Tests the Deep SVDD model on the test data."""
+    def init_network_weights_from_pretraining(self):
+        """Initialize the Deep SVDD network weights from the encoder weights of the pretraining autoencoder."""
 
-        self.trainer.test(dataset, self.net)
+        net_dict = self.net.state_dict()
+        ae_net_dict = self.ae_net.state_dict()
 
-    def save_model(self, xp_path):
+        # Filter out decoder network keys
+        ae_net_dict = {k: v for k, v in ae_net_dict.items() if k in net_dict}
+        # Overwrite values in the existing state_dict
+        net_dict.update(ae_net_dict)
+        # Load the new state_dict
+        self.net.load_state_dict(net_dict)
+
+    def save_model(self, xp_path, save_ae=True):
         """Save Deep SVDD model to xp_path."""
-        # Make save_ae an argument
-        pass
 
-    def load_model(self, model_path):
+        net_dict = self.net.state_dict()
+        ae_net_dict = self.ae_net.state_dict() if save_ae else None
+
+        torch.save({'R': self.R,
+                    'c': self.c,
+                    'net_dict': net_dict,
+                    'ae_net_dict': ae_net_dict}, xp_path + '/model.tar')
+
+    def load_model(self, model_path, load_ae=False):
         """Load Deep SVDD model from model_path."""
-        # Write such that this could be an AE network or Deep SVDD network
-        # Make load_ae an argument
-        pass
+
+        model_dict = torch.load(model_path)
+
+        self.R = model_dict['R']
+        self.c = model_dict['c']
+        self.net.load_state_dict(model_dict['net_dict'])
+        if load_ae:
+            if self.ae_net is None:
+                self.ae_net = build_autoencoder(self.net_name)
+            self.ae_net.load_state_dict(model_dict['ae_net_dict'])
