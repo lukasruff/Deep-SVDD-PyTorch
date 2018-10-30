@@ -3,6 +3,8 @@ from base.base_dataset import BaseADDataset
 from base.base_net import BaseNet
 from sklearn.metrics import roc_auc_score
 
+import logging
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -11,11 +13,12 @@ import numpy as np
 
 class AETrainer(BaseTrainer):
 
-    def __init__(self, optimizer_name: str, lr: float = 0.001, n_epochs: int = 150, batch_size: int = 128,
+    def __init__(self, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150, batch_size: int = 128,
                  weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
         super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, device, n_jobs_dataloader)
 
     def train(self, dataset: BaseADDataset, ae_net: BaseNet):
+        logger = logging.getLogger()
 
         # Set device for network
         ae_net = ae_net.to(self.device)
@@ -30,14 +33,17 @@ class AETrainer(BaseTrainer):
         optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Training
-        print('Starting training.')
+        logger.info('Starting pretraining...')
+        start_time = time.time()
         ae_net.train()
         for epoch in range(self.n_epochs):
 
             loss_epoch = 0.0
             n_batches = 0
+            epoch_start_time = time.time()
             for data in train_loader:
                 inputs, _, _ = data
+                inputs = inputs.to(self.device)
 
                 # Zero the network parameter gradients
                 optimizer.zero_grad()
@@ -51,14 +57,19 @@ class AETrainer(BaseTrainer):
                 loss_epoch += loss.item()
                 n_batches += 1
 
-            # print epoch statistics
-            print('[Epoch %d] loss: %.8f' % (epoch + 1, loss_epoch / n_batches))
+            # log epoch statistics
+            epoch_train_time = time.time() - epoch_start_time
+            logger.info('  Epoch {}/{}\t Time: {:.3f}\t Loss: {:.8f}'
+                        .format(epoch + 1, self.n_epochs, epoch_train_time, loss_epoch / n_batches))
 
-        print('Finished Training.')
+        pretrain_time = time.time() - start_time
+        logger.info('Pretraining time: %.3f' % pretrain_time)
+        logger.info('Finished pretraining.')
 
         return ae_net
 
     def test(self, dataset: BaseADDataset, ae_net: BaseNet):
+        logger = logging.getLogger()
 
         # Set device for network
         ae_net = ae_net.to(self.device)
@@ -69,12 +80,14 @@ class AETrainer(BaseTrainer):
         criterion = nn.MSELoss(reduction='none')
 
         # Testing
-        print('Starting testing.')
+        logger.info('Testing autoencoder...')
+        start_time = time.time()
         idx_label_score = []
         ae_net.eval()
         with torch.no_grad():
             for data in test_loader:
                 inputs, labels, idx = data
+                inputs = inputs.to(self.device)
                 outputs = ae_net(inputs)
                 # compute reconstruction errors
                 scores = torch.sum(criterion(outputs, inputs), dim=tuple(range(outputs.dim()))[1:])
@@ -90,6 +103,8 @@ class AETrainer(BaseTrainer):
         scores = np.array(scores)
 
         auc = roc_auc_score(labels[indices], scores)
-        print('Test set AUC: {:.2f}%'.format(100. * auc))
+        logger.info('Test set AUC: {:.2f}%'.format(100. * auc))
 
-        print('Finished testing.')
+        test_time = time.time() - start_time
+        logger.info('Autoencoder testing time: %.3f' % test_time)
+        logger.info('Finished testing autoencoder.')
