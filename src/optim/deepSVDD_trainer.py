@@ -25,6 +25,12 @@ class DeepSVDDTrainer(BaseTrainer):
         self.c = torch.tensor(c, device=self.device) if c is not None else None
         self.nu = nu
 
+        # Results
+        self.train_time = None
+        self.test_auc = None
+        self.test_time = None
+        self.test_scores = None
+
     def train(self, dataset: BaseADDataset, net: BaseNet):
         logger = logging.getLogger()
 
@@ -41,7 +47,6 @@ class DeepSVDDTrainer(BaseTrainer):
             logger.info('Initializing center c...')
             self.c = self.init_center_c(train_loader, net)
             logger.info("Center c initialized.")
-
 
         # Training
         logger.info('Starting training...')
@@ -82,8 +87,9 @@ class DeepSVDDTrainer(BaseTrainer):
             logger.info('  Epoch {}/{}\t Time: {:.3f}\t Loss: {:.8f}'
                         .format(epoch + 1, self.n_epochs, epoch_train_time, loss_epoch / n_batches))
 
-        train_time = time.time() - start_time
-        logger.info('Training time: %.3f' % train_time)
+        self.train_time = time.time() - start_time
+        logger.info('Training time: %.3f' % self.train_time)
+
         logger.info('Finished training.')
 
         return net
@@ -112,21 +118,24 @@ class DeepSVDDTrainer(BaseTrainer):
                 else:
                     scores = dist
 
-                # Save triple of (idx, label, score) in a list
+                # Save triples of (idx, label, score) in a list
                 idx_label_score += list(zip(idx.data.numpy().tolist(),
                                             labels.data.numpy().tolist(),
                                             scores.data.numpy().tolist()))
 
-        indices, labels, scores = zip(*idx_label_score)
-        indices = list(indices)  # convert from tuple to list
+        self.test_time = time.time() - start_time
+        logger.info('Testing time: %.3f' % self.test_time)
+
+        self.test_scores = idx_label_score
+
+        # Compute AUC
+        _, labels, scores = zip(*idx_label_score)
         labels = np.array(labels)
         scores = np.array(scores)
 
-        auc = roc_auc_score(labels[indices], scores)
-        logger.info('Test set AUC: {:.2f}%'.format(100. * auc))
+        self.test_auc = roc_auc_score(labels, scores)
+        logger.info('Test set AUC: {:.2f}%'.format(100. * self.test_auc))
 
-        test_time = time.time() - start_time
-        logger.info('Testing time: %.3f' % test_time)
         logger.info('Finished testing.')
 
     def init_center_c(self, train_loader: DataLoader, net: BaseNet, eps=0.1):

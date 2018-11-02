@@ -1,3 +1,4 @@
+import json
 import torch
 
 from base.base_dataset import BaseADDataset
@@ -43,6 +44,13 @@ class DeepSVDD(object):
         self.ae_trainer = None
         self.ae_optimizer_name = None
 
+        self.results = {
+            'train_time': None,
+            'test_auc': None,
+            'test_time': None,
+            'test_scores': None,
+        }
+
     def set_network(self, net_name):
         """Builds the neural network \phi."""
         self.net_name = net_name
@@ -56,9 +64,11 @@ class DeepSVDD(object):
         self.trainer = DeepSVDDTrainer(self.objective, self.R, self.c, self.nu, optimizer_name, lr=lr,
                                        n_epochs=n_epochs, batch_size=batch_size, weight_decay=weight_decay,
                                        device=device, n_jobs_dataloader=n_jobs_dataloader)
+        # Get model
         self.net = self.trainer.train(dataset, self.net)
         self.R = float(self.trainer.R.data.numpy())  # get float
         self.c = self.trainer.c.data.numpy().tolist()  # get list
+        self.results['train_time'] = self.trainer.train_time
 
     def test(self, dataset: BaseADDataset, device: str = 'cuda', n_jobs_dataloader: int = 0):
         """Tests the Deep SVDD model on the test data."""
@@ -68,6 +78,10 @@ class DeepSVDD(object):
                                            device=device, n_jobs_dataloader=n_jobs_dataloader)
 
         self.trainer.test(dataset, self.net)
+        # Get results
+        self.results['test_auc'] = self.trainer.test_auc
+        self.results['test_time'] = self.trainer.test_time
+        self.results['test_scores'] = self.trainer.test_scores
 
     def pretrain(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
                  batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
@@ -94,8 +108,8 @@ class DeepSVDD(object):
         # Load the new state_dict
         self.net.load_state_dict(net_dict)
 
-    def save_model(self, xp_path, save_ae=True):
-        """Save Deep SVDD model to xp_path."""
+    def save_model(self, export_model, save_ae=True):
+        """Save Deep SVDD model to export_model."""
 
         net_dict = self.net.state_dict()
         ae_net_dict = self.ae_net.state_dict() if save_ae else None
@@ -103,7 +117,7 @@ class DeepSVDD(object):
         torch.save({'R': self.R,
                     'c': self.c,
                     'net_dict': net_dict,
-                    'ae_net_dict': ae_net_dict}, xp_path + '/model.tar')
+                    'ae_net_dict': ae_net_dict}, export_model)
 
     def load_model(self, model_path, load_ae=False):
         """Load Deep SVDD model from model_path."""
@@ -117,3 +131,8 @@ class DeepSVDD(object):
             if self.ae_net is None:
                 self.ae_net = build_autoencoder(self.net_name)
             self.ae_net.load_state_dict(model_dict['ae_net_dict'])
+
+    def save_results(self, export_json):
+        """Save results dict to a JSON-file."""
+        with open(export_json, 'w') as fp:
+            json.dump(self.results, fp)

@@ -97,12 +97,11 @@ class AETrainer(BaseTrainer):
                                             labels.data.numpy().tolist(),
                                             scores.data.numpy().tolist()))
 
-        indices, labels, scores = zip(*idx_label_score)
-        indices = list(indices)  # convert from tuple to list
+        _, labels, scores = zip(*idx_label_score)
         labels = np.array(labels)
         scores = np.array(scores)
 
-        auc = roc_auc_score(labels[indices], scores)
+        auc = roc_auc_score(labels, scores)
         logger.info('Test set AUC: {:.2f}%'.format(100. * auc))
 
         test_time = time.time() - start_time
