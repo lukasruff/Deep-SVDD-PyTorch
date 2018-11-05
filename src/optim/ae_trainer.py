@@ -32,11 +32,16 @@ class AETrainer(BaseTrainer):
         # Set optimizer (Adam optimizer for now)
         optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
+        # Set learning rate scheduler
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[150], gamma=0.1)
+
         # Training
         logger.info('Starting pretraining...')
         start_time = time.time()
         ae_net.train()
         for epoch in range(self.n_epochs):
+
+            scheduler.step()
 
             loss_epoch = 0.0
             n_batches = 0

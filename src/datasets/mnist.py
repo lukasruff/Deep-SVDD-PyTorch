@@ -2,7 +2,7 @@ from torch.utils.data import Subset
 from PIL import Image
 from torchvision.datasets import MNIST
 from base.torchvision_dataset import TorchvisionDataset
-from .preprocessing import get_target_label_idx
+from .preprocessing import get_target_label_idx, global_contrast_normalization
 
 import torchvision.transforms as transforms
 
@@ -16,7 +16,9 @@ class MNIST_Dataset(TorchvisionDataset):
         self.normal_classes = tuple([0])
         self.outlier_classes = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-        transform = transforms.ToTensor()
+        transform = transforms.Compose([transforms.ToTensor(),
+                                        transforms.Lambda(lambda x: global_contrast_normalization(x, scale='l1'))])
+
         target_transform = transforms.Lambda(lambda x: int(x in self.outlier_classes))
 
         train_set = MyMNIST(root=self.root, train=True, download=True,
