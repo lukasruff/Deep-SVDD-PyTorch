@@ -17,8 +17,10 @@ class MNIST_Dataset(TorchvisionDataset):
         self.outlier_classes = list(range(0, 10))
         self.outlier_classes.remove(normal_class)
 
+        # MNIST preprocessing: GCN (with L1 norm) and min-max feature scaling to [0,1]
         transform = transforms.Compose([transforms.ToTensor(),
-                                        transforms.Lambda(lambda x: global_contrast_normalization(x, scale='l1'))])
+                                        transforms.Lambda(lambda x: global_contrast_normalization(x, scale='l1')),
+                                        transforms.Normalize([-0.88265670], [20.1080622 + 0.88265670])])
 
         target_transform = transforms.Lambda(lambda x: int(x in self.outlier_classes))
 
