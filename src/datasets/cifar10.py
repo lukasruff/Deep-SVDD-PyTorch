@@ -9,12 +9,13 @@ import torchvision.transforms as transforms
 
 class CIFAR10_Dataset(TorchvisionDataset):
 
-    def __init__(self, root: str):
+    def __init__(self, root: str, normal_class=5):
         super().__init__(root)
 
         self.n_classes = 2  # 0: normal, 1: outlier
-        self.normal_classes = tuple([0])
-        self.outlier_classes = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+        self.normal_classes = tuple([normal_class])
+        self.outlier_classes = list(range(0, 10))
+        self.outlier_classes.remove(normal_class)
 
         transform = transforms.Compose([transforms.ToTensor(),
                                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])

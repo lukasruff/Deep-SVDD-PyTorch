@@ -46,13 +46,11 @@ from datasets.main import load_dataset
               help='Weight decay (L2 penalty) hyperparameter for autoencoder objective.')
 @click.option('--n_jobs_dataloader', type=int, default=0,
               help='Number of workers for data loading. 0 means that the data will be loaded in the main process.')
-@click.option('--mnist_normal', type=int, default=0,
-              help='Specify the normal class for MNIST (all other classes are considered anomalous).')
-@click.option('--cifar10_normal', type=int, default=0,
-              help='Specify the normal class for CIFAR-10 (all other classes are considered anomalous).')
+@click.option('--normal_class', type=int, default=0,
+              help='Specify the normal class of the dataset (all other classes are considered anomalous).')
 def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, objective, nu, device, seed,
          optimizer_name, lr, n_epochs, batch_size, weight_decay, pretrain, ae_optimizer_name, ae_lr, ae_n_epochs,
-         ae_batch_size, ae_weight_decay, n_jobs_dataloader):
+         ae_batch_size, ae_weight_decay, n_jobs_dataloader, normal_class):
     """
     Deep SVDD, a fully deep method for anomaly detection.
 
@@ -82,6 +80,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     logger.info('Export path is %s.' % xp_path)
 
     logger.info('Dataset: %s' % dataset_name)
+    logger.info('Normal class: %d' % normal_class)
     logger.info('Network: %s' % net_name)
 
     # If specified, load experiment config from JSON-file
@@ -105,7 +104,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     logger.info('Number of dataloader workers: %d' % n_jobs_dataloader)
 
     # Load data
-    dataset = load_dataset(dataset_name, data_path)
+    dataset = load_dataset(dataset_name, data_path, normal_class)
 
     # Initialize DeepSVDD model and set neural network \phi
     deep_SVDD = DeepSVDD(cfg.settings['objective'], cfg.settings['nu'])
