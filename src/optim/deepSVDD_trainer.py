@@ -124,9 +124,9 @@ class DeepSVDDTrainer(BaseTrainer):
                     scores = dist
 
                 # Save triples of (idx, label, score) in a list
-                idx_label_score += list(zip(idx.data.numpy().tolist(),
-                                            labels.data.numpy().tolist(),
-                                            scores.data.numpy().tolist()))
+                idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
+                                            labels.cpu().data.numpy().tolist(),
+                                            scores.cpu().data.numpy().tolist()))
 
         self.test_time = time.time() - start_time
         logger.info('Testing time: %.3f' % self.test_time)
@@ -167,4 +167,4 @@ class DeepSVDDTrainer(BaseTrainer):
 
 def get_radius(dist: torch.Tensor, nu: float):
     """Optimally solve for radius R via the (1-nu)-quantile of distances."""
-    return np.quantile(dist.data.numpy(), 1-nu)
+    return np.quantile(dist.clone().data.cpu().numpy(), 1-nu)

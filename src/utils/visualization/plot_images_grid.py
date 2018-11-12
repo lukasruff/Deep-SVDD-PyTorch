@@ -11,7 +11,7 @@ def plot_images_grid(x: torch.tensor, export_img, title: str = '', nrow=8, paddi
     """Plot 4D Tensor of images of shape (B x C x H x W) as a grid."""
 
     grid = make_grid(x, nrow=nrow, padding=padding, normalize=normalize, pad_value=pad_value)
-    npgrid = grid.numpy()
+    npgrid = grid.cpu().numpy()
 
     plt.imshow(np.transpose(npgrid, (1, 2, 0)), interpolation='nearest')
 

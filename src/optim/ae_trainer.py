@@ -98,9 +98,9 @@ class AETrainer(BaseTrainer):
                 scores = torch.sum(criterion(outputs, inputs), dim=tuple(range(outputs.dim()))[1:])
 
                 # Save triple of (idx, label, score) in a list
-                idx_label_score += list(zip(idx.data.numpy().tolist(),
-                                            labels.data.numpy().tolist(),
-                                            scores.data.numpy().tolist()))
+                idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
+                                            labels.cpu().data.numpy().tolist(),
+                                            scores.cpu().data.numpy().tolist()))
 
         _, labels, scores = zip(*idx_label_score)
         labels = np.array(labels)

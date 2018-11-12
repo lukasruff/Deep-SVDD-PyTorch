@@ -66,8 +66,8 @@ class DeepSVDD(object):
                                        device=device, n_jobs_dataloader=n_jobs_dataloader)
         # Get model
         self.net = self.trainer.train(dataset, self.net)
-        self.R = float(self.trainer.R.data.numpy())  # get float
-        self.c = self.trainer.c.data.numpy().tolist()  # get list
+        self.R = float(self.trainer.R.cpu().data.numpy())  # get float
+        self.c = self.trainer.c.cpu().data.numpy().tolist()  # get list
         self.results['train_time'] = self.trainer.train_time
 
     def test(self, dataset: BaseADDataset, device: str = 'cuda', n_jobs_dataloader: int = 0):
