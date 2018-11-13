@@ -33,7 +33,8 @@ class AETrainer(BaseTrainer):
         optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Set learning rate scheduler
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[150], gamma=0.1)
+        milestones = [150]
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
 
         # Training
         logger.info('Starting pretraining...')
@@ -42,6 +43,8 @@ class AETrainer(BaseTrainer):
         for epoch in range(self.n_epochs):
 
             scheduler.step()
+            if epoch in milestones:
+                logger.info('  LR scheduler: new learning rate is %g' % float(scheduler.get_lr()[0]))
 
             loss_epoch = 0.0
             n_batches = 0

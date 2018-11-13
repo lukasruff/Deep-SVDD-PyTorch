@@ -43,13 +43,14 @@ class DeepSVDDTrainer(BaseTrainer):
         optimizer = optim.Adam(net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Set learning rate scheduler
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50], gamma=0.1)
+        milestones = [50]
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
 
         # Initialize hypersphere center c (if c not loaded)
         if self.c is None:
             logger.info('Initializing center c...')
             self.c = self.init_center_c(train_loader, net)
-            logger.info("Center c initialized.")
+            logger.info('Center c initialized.')
 
         # Training
         logger.info('Starting training...')
@@ -58,6 +59,8 @@ class DeepSVDDTrainer(BaseTrainer):
         for epoch in range(self.n_epochs):
 
             scheduler.step()
+            if epoch in milestones:
+                logger.info('  LR scheduler: new learning rate is %g' % float(scheduler.get_lr()[0]))
 
             loss_epoch = 0.0
             n_batches = 0
