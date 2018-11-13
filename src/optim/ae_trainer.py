@@ -27,7 +27,7 @@ class AETrainer(BaseTrainer):
 
         # Set loss
         # TODO: Implement choice of different losses (MSE, CrossEntropyLoss)
-        criterion = nn.MSELoss()
+        # criterion = nn.MSELoss()
 
         # Set optimizer (Adam optimizer for now)
         optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
@@ -58,7 +58,9 @@ class AETrainer(BaseTrainer):
 
                 # Update network parameters via backpropagation: forward + backward + optimize
                 outputs = ae_net(inputs)
-                loss = criterion(outputs, inputs)
+                # loss = criterion(outputs, inputs)
+                scores = torch.sum((outputs - inputs) ** 2, dim=tuple(range(1, outputs.dim())))
+                loss = torch.mean(scores)
                 loss.backward()
                 optimizer.step()
 
@@ -85,10 +87,12 @@ class AETrainer(BaseTrainer):
         _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
         # Set loss
-        criterion = nn.MSELoss(reduction='none')
+        # criterion = nn.MSELoss(reduction='none')
 
         # Testing
         logger.info('Testing autoencoder...')
+        loss_epoch = 0.0
+        n_batches = 0
         start_time = time.time()
         idx_label_score = []
         ae_net.eval()
@@ -98,12 +102,19 @@ class AETrainer(BaseTrainer):
                 inputs = inputs.to(self.device)
                 outputs = ae_net(inputs)
                 # compute reconstruction errors
-                scores = torch.sum(criterion(outputs, inputs), dim=tuple(range(outputs.dim()))[1:])
+                # scores = torch.sum(criterion(outputs, inputs), dim=tuple(range(1, outputs.dim())))
+                scores = torch.sum((outputs - inputs) ** 2, dim=tuple(range(1, outputs.dim())))
+                loss = torch.mean(scores)
 
                 # Save triple of (idx, label, score) in a list
                 idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
                                             labels.cpu().data.numpy().tolist(),
                                             scores.cpu().data.numpy().tolist()))
+
+                loss_epoch += loss.item()
+                n_batches += 1
+
+        logger.info('Test set Loss: {:.8f}'.format(loss_epoch / n_batches))
 
         _, labels, scores = zip(*idx_label_score)
         labels = np.array(labels)
