@@ -17,10 +17,23 @@ class MNIST_Dataset(TorchvisionDataset):
         self.outlier_classes = list(range(0, 10))
         self.outlier_classes.remove(normal_class)
 
+        # Pre-computed min and max values (after applying GCN) from train data per class
+        min_max = [(-0.8826567065619495, 9.001545489292527),
+                   (-0.6661464580883915, 20.108062262467364),
+                   (-0.7820454743183202, 11.665100841080346),
+                   (-0.7645772083211267, 12.895051191467457),
+                   (-0.7253923114302238, 12.683235701611533),
+                   (-0.7698501867861425, 13.103278415430502),
+                   (-0.778418217980696, 10.457837397569108),
+                   (-0.7129780970522351, 12.057777597673047),
+                   (-0.8280402650205075, 10.581538445782988),
+                   (-0.7369959242164307, 10.697039838804978)]
+
         # MNIST preprocessing: GCN (with L1 norm) and min-max feature scaling to [0,1]
         transform = transforms.Compose([transforms.ToTensor(),
                                         transforms.Lambda(lambda x: global_contrast_normalization(x, scale='l1')),
-                                        transforms.Normalize([-0.88265670], [20.1080622 + 0.88265670])])
+                                        transforms.Normalize([min_max[normal_class][0]],
+                                                             [min_max[normal_class][1] - min_max[normal_class][0]])])
 
         target_transform = transforms.Lambda(lambda x: int(x in self.outlier_classes))
 
