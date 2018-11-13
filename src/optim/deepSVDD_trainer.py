@@ -25,6 +25,10 @@ class DeepSVDDTrainer(BaseTrainer):
         self.c = torch.tensor(c, device=self.device) if c is not None else None
         self.nu = nu
 
+        # Optimization parameters
+        self.warm_up_n_epochs = 10  # number of training epochs for soft-boundary Deep SVDD before radius R gets updated
+        self.milestones = [50]
+
         # Results
         self.train_time = None
         self.test_auc = None
@@ -43,8 +47,7 @@ class DeepSVDDTrainer(BaseTrainer):
         optimizer = optim.Adam(net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Set learning rate scheduler
-        milestones = [50]
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.milestones, gamma=0.1)
 
         # Initialize hypersphere center c (if c not loaded)
         if self.c is None:
@@ -59,7 +62,7 @@ class DeepSVDDTrainer(BaseTrainer):
         for epoch in range(self.n_epochs):
 
             scheduler.step()
-            if epoch in milestones:
+            if epoch in self.milestones:
                 logger.info('  LR scheduler: new learning rate is %g' % float(scheduler.get_lr()[0]))
 
             loss_epoch = 0.0
@@ -84,7 +87,7 @@ class DeepSVDDTrainer(BaseTrainer):
                 optimizer.step()
 
                 # Update hypersphere radius R on mini-batch distances
-                if self.objective == 'soft-boundary':
+                if (self.objective == 'soft-boundary') and (epoch >= self.warm_up_n_epochs):
                     self.R.data = torch.tensor(get_radius(dist, self.nu), device=self.device)
 
                 loss_epoch += loss.item()
