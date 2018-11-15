@@ -33,7 +33,7 @@ class AETrainer(BaseTrainer):
         optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Set learning rate scheduler
-        milestones = [150]
+        milestones = [250]
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
 
         # Training
