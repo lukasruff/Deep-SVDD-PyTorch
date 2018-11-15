@@ -17,8 +17,7 @@ class CIFAR10_Dataset(TorchvisionDataset):
         self.outlier_classes = list(range(0, 10))
         self.outlier_classes.remove(normal_class)
 
-        transform = transforms.Compose([transforms.ToTensor(),
-                                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        transform = transforms.Compose([transforms.ToTensor()])
         target_transform = transforms.Lambda(lambda x: int(x in self.outlier_classes))
 
         train_set = MyCIFAR10(root=self.root, train=True, download=True,
