@@ -163,8 +163,8 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     if dataset_name in ('mnist', 'cifar10'):
 
         if dataset_name == 'mnist':
-            X_normals = torch.tensordataset.test_set.test_data[idx_sorted[:32], ...].unsqueeze(1)
-            X_outliers = torch.tensordataset.test_set.test_data[idx_sorted[-32:], ...].unsqueeze(1)
+            X_normals = dataset.test_set.test_data[idx_sorted[:32], ...].unsqueeze(1)
+            X_outliers = dataset.test_set.test_data[idx_sorted[-32:], ...].unsqueeze(1)
 
         if dataset_name == 'cifar10':
             X_normals = torch.tensor(np.transpose(dataset.test_set.test_data[idx_sorted[:32], ...], (0, 3, 1, 2)))
