@@ -14,13 +14,13 @@ class CIFAR10_LeNet(BaseNet):
         self.pool = nn.MaxPool2d(2, 2)
 
         self.conv1 = nn.Conv2d(3, 8, 5, bias=False, padding=2)
-        self.bn2d1 = nn.BatchNorm2d(8, eps=1e-04)
+        self.bn2d1 = nn.BatchNorm2d(8, eps=1e-04, affine=False)
         self.conv2 = nn.Conv2d(8, 16, 5, bias=False, padding=2)
-        self.bn2d2 = nn.BatchNorm2d(16, eps=1e-04)
+        self.bn2d2 = nn.BatchNorm2d(16, eps=1e-04, affine=False)
         self.fc1 = nn.Linear(16 * 8 * 8, 256, bias=False)
-        self.bn1d1 = nn.BatchNorm1d(256, eps=1e-04)
+        self.bn1d1 = nn.BatchNorm1d(256, eps=1e-04, affine=False)
         self.fc2 = nn.Linear(256, 128, bias=False)
-        self.bn1d2 = nn.BatchNorm1d(128, eps=1e-04)
+        self.bn1d2 = nn.BatchNorm1d(128, eps=1e-04, affine=False)
         self.fc3 = nn.Linear(128, self.rep_dim, bias=False)
 
     def forward(self, x):
@@ -47,24 +47,24 @@ class CIFAR10_LeNet_Autoencoder(BaseNet):
 
         # Encoder (must match the Deep SVDD network above)
         self.conv1 = nn.Conv2d(3, 8, 5, bias=False, padding=2)
-        self.bn2d1 = nn.BatchNorm2d(8, eps=1e-04)
+        self.bn2d1 = nn.BatchNorm2d(8, eps=1e-04, affine=False)
         self.conv2 = nn.Conv2d(8, 16, 5, bias=False, padding=2)
-        self.bn2d2 = nn.BatchNorm2d(16, eps=1e-04)
+        self.bn2d2 = nn.BatchNorm2d(16, eps=1e-04, affine=False)
         self.fc1 = nn.Linear(16 * 8 * 8, 256, bias=False)
-        self.bn1d1 = nn.BatchNorm1d(256, eps=1e-04)
+        self.bn1d1 = nn.BatchNorm1d(256, eps=1e-04, affine=False)
         self.fc2 = nn.Linear(256, 128, bias=False)
-        self.bn1d2 = nn.BatchNorm1d(128, eps=1e-04)
+        self.bn1d2 = nn.BatchNorm1d(128, eps=1e-04, affine=False)
         self.fc3 = nn.Linear(128, self.rep_dim, bias=False)
 
         # Decoder
         self.fc4 = nn.Linear(self.rep_dim, 128, bias=False)
-        self.bn1d4 = nn.BatchNorm1d(128, eps=1e-04)
+        self.bn1d4 = nn.BatchNorm1d(128, eps=1e-04, affine=False)
         self.fc5 = nn.Linear(128, 256, bias=False)
-        self.bn1d5 = nn.BatchNorm1d(256, eps=1e-04)
+        self.bn1d5 = nn.BatchNorm1d(256, eps=1e-04, affine=False)
         self.conv3 = nn.Conv2d(16, 16, 5, bias=False, padding=2)
-        self.bn2d3 = nn.BatchNorm2d(16, eps=1e-04)
+        self.bn2d3 = nn.BatchNorm2d(16, eps=1e-04, affine=False)
         self.conv4 = nn.Conv2d(16, 8, 5, bias=False, padding=2)
-        self.bn2d4 = nn.BatchNorm2d(8, eps=1e-04)
+        self.bn2d4 = nn.BatchNorm2d(8, eps=1e-04, affine=False)
         self.conv5 = nn.Conv2d(8, 3, 5, bias=False, padding=2)
 
     def forward(self, x):
