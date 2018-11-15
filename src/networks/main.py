@@ -1,5 +1,5 @@
 from .mnist_LeNet import MNIST_LeNet, MNIST_LeNet_Autoencoder
-from .cifar10_LeNet import CIFAR10_LeNet
+from .cifar10_LeNet import CIFAR10_LeNet, CIFAR10_LeNet_Autoencoder
 
 
 def build_network(net_name):
@@ -22,12 +22,15 @@ def build_network(net_name):
 def build_autoencoder(net_name):
     """Builds the respective autoencoder network."""
 
-    implemented_networks = ('mnist_LeNet')
+    implemented_networks = ('mnist_LeNet', 'cifar10_LeNet')
     assert net_name in implemented_networks
 
     ae_net = None
 
     if net_name == 'mnist_LeNet':
         ae_net = MNIST_LeNet_Autoencoder()
+
+    if net_name == 'cifar10_LeNet':
+        ae_net = CIFAR10_LeNet_Autoencoder()
 
     return ae_net
