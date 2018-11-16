@@ -2,7 +2,7 @@ from torch.utils.data import Subset
 from PIL import Image
 from torchvision.datasets import CIFAR10
 from base.torchvision_dataset import TorchvisionDataset
-from .preprocessing import get_target_label_idx
+from .preprocessing import get_target_label_idx, global_contrast_normalization
 
 import torchvision.transforms as transforms
 
