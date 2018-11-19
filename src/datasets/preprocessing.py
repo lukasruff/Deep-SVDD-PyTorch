@@ -21,17 +21,17 @@ def global_contrast_normalization(x: torch.tensor, scale='l2'):
 
     assert scale in ('l1', 'l2')
 
-    n_features = int(np.prod(x.shape[1:]))
+    n_features = int(np.prod(x.shape))
 
-    mean = torch.sum(x, dim=tuple(range(1, x.dim()))) / n_features  # mean over all features (pixels) per sample
-    x -= mean.view((x.shape[0],) + (1,) * (x.dim() - 1))
+    mean = torch.mean(x)  # mean over all features (pixels) per sample
+    x -= mean
 
     if scale == 'l1':
-        x_scale = torch.sum(torch.abs(x), dim=tuple(range(1, x.dim()))) / n_features
+        x_scale = torch.mean(torch.abs(x))
 
     if scale == 'l2':
-        x_scale = torch.sqrt(torch.sum(x ** 2, dim=tuple(range(1, x.dim())))) / n_features
+        x_scale = torch.sqrt(torch.sum(x ** 2)) / n_features
 
-    x /= x_scale.view((x.shape[0],) + (1,) * (x.dim() - 1))
+    x /= x_scale
 
     return x
