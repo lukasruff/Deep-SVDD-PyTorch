@@ -32,8 +32,8 @@ class CIFAR10_Dataset(TorchvisionDataset):
         # CIFAR-10 preprocessing: GCN (with L1 norm) and min-max feature scaling to [0,1]
         transform = transforms.Compose([transforms.ToTensor(),
                                         transforms.Lambda(lambda x: global_contrast_normalization(x, scale='l1')),
-                                        transforms.Normalize([min_max[normal_class][0]],
-                                                             [min_max[normal_class][1] - min_max[normal_class][0]])])
+                                        transforms.Normalize([min_max[normal_class][0]] * 3,
+                                                             [min_max[normal_class][1] - min_max[normal_class][0]] * 3)])
 
         target_transform = transforms.Lambda(lambda x: int(x in self.outlier_classes))
 
