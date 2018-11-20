@@ -102,9 +102,6 @@ class AETrainer(BaseTrainer):
                 inputs, labels, idx = data
                 inputs = inputs.to(self.device)
                 outputs = ae_net(inputs)
-                if n_batches == 0:
-                    plot_images_grid(outputs[:32], export_img='../log/cifar10/test/rec',
-                                     title='Some AE reconstructions', padding=2)
                 # compute reconstruction errors
                 # scores = torch.sum(criterion(outputs, inputs), dim=tuple(range(1, outputs.dim())))
                 scores = torch.sum((outputs - inputs) ** 2, dim=tuple(range(1, outputs.dim())))
@@ -114,6 +111,9 @@ class AETrainer(BaseTrainer):
                 idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
                                             labels.cpu().data.numpy().tolist(),
                                             scores.cpu().data.numpy().tolist()))
+
+                if n_batches == 0:
+                    self.rec_sample = outputs[:32].cpu().data.numpy()
 
                 loss_epoch += loss.item()
                 n_batches += 1
