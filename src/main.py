@@ -154,7 +154,9 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     deep_SVDD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader)
 
     # Plot some sample reconstructions
-    plot_images_grid(torch.tensor(deep_SVDD.ae_trainer.rec_sample), export_img=xp_path + '/rec',
+    plot_images_grid(torch.tensor(deep_SVDD.ae_trainer.orig_sample), export_img=xp_path + '/sample_orig',
+                     title='Originals', padding=2)
+    plot_images_grid(torch.tensor(deep_SVDD.ae_trainer.rec_sample), export_img=xp_path + '/sample_rec',
                      title='Some AE reconstructions', padding=2)
 
     # Plot most anomalous and most normal (within-class) test samples

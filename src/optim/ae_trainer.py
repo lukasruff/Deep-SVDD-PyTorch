@@ -113,6 +113,7 @@ class AETrainer(BaseTrainer):
                                             scores.cpu().data.numpy().tolist()))
 
                 if n_batches == 0:
+                    self.orig_sample = inputs[:32].cpu().data.numpy()
                     self.rec_sample = outputs[:32].cpu().data.numpy()
 
                 loss_epoch += loss.item()
