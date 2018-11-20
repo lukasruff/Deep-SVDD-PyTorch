@@ -2,6 +2,7 @@ from base.base_trainer import BaseTrainer
 from base.base_dataset import BaseADDataset
 from base.base_net import BaseNet
 from sklearn.metrics import roc_auc_score
+from utils.visualization.plot_images_grid import plot_images_grid
 
 import logging
 import time
@@ -101,6 +102,9 @@ class AETrainer(BaseTrainer):
                 inputs, labels, idx = data
                 inputs = inputs.to(self.device)
                 outputs = ae_net(inputs)
+                if n_batches == 0:
+                    plot_images_grid(outputs[:32], export_img='../log/cifar10/test/rec',
+                                     title='Some AE reconstructions', padding=2)
                 # compute reconstruction errors
                 # scores = torch.sum(criterion(outputs, inputs), dim=tuple(range(1, outputs.dim())))
                 scores = torch.sum((outputs - inputs) ** 2, dim=tuple(range(1, outputs.dim())))
