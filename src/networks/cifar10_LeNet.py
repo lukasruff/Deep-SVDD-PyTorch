@@ -43,21 +43,29 @@ class CIFAR10_LeNet_Autoencoder(BaseNet):
 
         # Encoder (must match the Deep SVDD network above)
         self.conv1 = nn.Conv2d(3, 32, 5, bias=False, padding=2)
+        nn.init.xavier_uniform_(self.conv1.weight, gain=nn.init.calculate_gain('leaky_relu'))
         self.bn2d1 = nn.BatchNorm2d(32, eps=1e-04)
         self.conv2 = nn.Conv2d(32, 64, 5, bias=False, padding=2)
+        nn.init.xavier_uniform_(self.conv2.weight, gain=nn.init.calculate_gain('leaky_relu'))
         self.bn2d2 = nn.BatchNorm2d(64, eps=1e-04)
         self.conv3 = nn.Conv2d(64, 128, 5, bias=False, padding=2)
+        nn.init.xavier_uniform_(self.conv3.weight, gain=nn.init.calculate_gain('leaky_relu'))
         self.bn2d3 = nn.BatchNorm2d(128, eps=1e-04)
         self.fc1 = nn.Linear(128 * 4 * 4, self.rep_dim, bias=False)
 
         # Decoder
         self.conv4 = nn.Conv2d(int(self.rep_dim / (4 * 4)), 128, 5, bias=False, padding=2)
+        nn.init.xavier_uniform_(self.conv4.weight, gain=nn.init.calculate_gain('leaky_relu'))
         self.bn2d4 = nn.BatchNorm2d(128, eps=1e-04)
         self.conv5 = nn.Conv2d(128, 64, 5, bias=False, padding=2)
+        nn.init.xavier_uniform_(self.conv5.weight, gain=nn.init.calculate_gain('leaky_relu'))
         self.bn2d5 = nn.BatchNorm2d(64, eps=1e-04)
         self.conv6 = nn.Conv2d(64, 32, 5, bias=False, padding=2)
+        nn.init.xavier_uniform_(self.conv6.weight, gain=nn.init.calculate_gain('leaky_relu'))
         self.bn2d6 = nn.BatchNorm2d(32, eps=1e-04)
         self.conv7 = nn.Conv2d(32, 3, 5, bias=False, padding=2)
+        nn.init.xavier_uniform_(self.conv7.weight, gain=nn.init.calculate_gain('leaky_relu'))
+        self.bn2d7 = nn.BatchNorm2d(3, eps=1e-04)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -77,5 +85,6 @@ class CIFAR10_LeNet_Autoencoder(BaseNet):
         x = self.conv6(x)
         x = F.interpolate(F.leaky_relu(self.bn2d6(x)), scale_factor=2)
         x = self.conv7(x)
+        x = self.bn2d7(x)
         x = torch.sigmoid(x)
         return x
