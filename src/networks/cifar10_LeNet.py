@@ -52,6 +52,7 @@ class CIFAR10_LeNet_Autoencoder(BaseNet):
         nn.init.xavier_uniform_(self.conv3.weight, gain=nn.init.calculate_gain('leaky_relu'))
         self.bn2d3 = nn.BatchNorm2d(128, eps=1e-04)
         self.fc1 = nn.Linear(128 * 4 * 4, self.rep_dim, bias=False)
+        self.bn1d = nn.BatchNorm1d(128 * 4 * 4, eps=1e-04)
 
         # Decoder
         self.conv4 = nn.Conv2d(int(self.rep_dim / (4 * 4)), 128, 5, bias=False, padding=2)
