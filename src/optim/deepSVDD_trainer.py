@@ -166,7 +166,9 @@ class DeepSVDDTrainer(BaseTrainer):
 
         c /= n_samples
 
-        # TODO: Make sure elements of center c are not initialized too close to 0 using eps?
+        # If c_i is too close to 0, set to +-eps. Reason: a zero unit can be trivially matched with zero weights.
+        c[(abs(c) < eps) & (c < 0)] = -eps
+        c[(abs(c) < eps) & (c > 0)] = eps
 
         return c
 
