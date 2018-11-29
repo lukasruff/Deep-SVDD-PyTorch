@@ -1,6 +1,7 @@
 import click
 import torch
 import logging
+import random
 import numpy as np
 
 from utils.config import Config
@@ -94,6 +95,8 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
 
     # Set seed
     if cfg.settings['seed'] != -1:
+        random.seed(cfg.settings['seed'])
+        np.random.seed(cfg.settings['seed'])
         torch.manual_seed(cfg.settings['seed'])
         logger.info('Set seed to %d.' % cfg.settings['seed'])
 
