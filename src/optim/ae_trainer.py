@@ -2,7 +2,6 @@ from base.base_trainer import BaseTrainer
 from base.base_dataset import BaseADDataset
 from base.base_net import BaseNet
 from sklearn.metrics import roc_auc_score
-from utils.visualization.plot_images_grid import plot_images_grid
 
 import logging
 import time
@@ -111,10 +110,6 @@ class AETrainer(BaseTrainer):
                 idx_label_score += list(zip(idx.cpu().data.numpy().tolist(),
                                             labels.cpu().data.numpy().tolist(),
                                             scores.cpu().data.numpy().tolist()))
-
-                if n_batches == 0:
-                    self.orig_sample = inputs[:32].cpu().data.numpy()
-                    self.rec_sample = outputs[:32].cpu().data.numpy()
 
                 loss_epoch += loss.item()
                 n_batches += 1

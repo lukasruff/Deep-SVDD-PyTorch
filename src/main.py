@@ -156,19 +156,11 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     # Test model
     deep_SVDD.test(dataset, device=device, n_jobs_dataloader=n_jobs_dataloader)
 
-    # Plot some sample reconstructions
-    plot_images_grid(torch.tensor(deep_SVDD.ae_trainer.orig_sample), export_img=xp_path + '/sample_orig',
-                     title='Originals', padding=2)
-    plot_images_grid(torch.tensor(deep_SVDD.ae_trainer.rec_sample), export_img=xp_path + '/sample_rec',
-                     title='Some AE reconstructions', padding=2)
-
     # Plot most anomalous and most normal (within-class) test samples
     indices, labels, scores = zip(*deep_SVDD.results['test_scores'])
     indices, labels, scores = np.array(indices), np.array(labels), np.array(scores)
-
     idx_sorted = indices[labels == 0][np.argsort(scores[labels == 0])]  # sorted from lowest to highest anomaly score
 
-    # Plot most normal and most anomalous samples
     if dataset_name in ('mnist', 'cifar10'):
 
         if dataset_name == 'mnist':
