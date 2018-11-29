@@ -127,6 +127,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
         logger.info('Pretraining optimizer: %s' % cfg.settings['ae_optimizer_name'])
         logger.info('Pretraining learning rate: %g' % cfg.settings['ae_lr'])
         logger.info('Pretraining epochs: %d' % cfg.settings['ae_n_epochs'])
+        logger.info('Pretraining learning rate scheduler milestones: %s' % (cfg.settings['ae_lr_milestone'],))
         logger.info('Pretraining batch size: %d' % cfg.settings['ae_batch_size'])
         logger.info('Pretraining weight decay: %g' % cfg.settings['ae_weight_decay'])
 
@@ -145,6 +146,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     logger.info('Training optimizer: %s' % cfg.settings['optimizer_name'])
     logger.info('Training learning rate: %g' % cfg.settings['lr'])
     logger.info('Training epochs: %d' % cfg.settings['n_epochs'])
+    logger.info('Training learning rate scheduler milestones: %s' % (cfg.settings['lr_milestone'],))
     logger.info('Training batch size: %d' % cfg.settings['batch_size'])
     logger.info('Training weight decay: %g' % cfg.settings['weight_decay'])
 
