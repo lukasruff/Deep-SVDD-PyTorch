@@ -12,9 +12,10 @@ import numpy as np
 
 class AETrainer(BaseTrainer):
 
-    def __init__(self, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150, batch_size: int = 128,
-                 weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
-        super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, device, n_jobs_dataloader)
+    def __init__(self, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150, lr_milestones: tuple = (),
+                 batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
+        super().__init__(optimizer_name, lr, n_epochs, lr_milestones, batch_size, weight_decay, device,
+                         n_jobs_dataloader)
 
     def train(self, dataset: BaseADDataset, ae_net: BaseNet):
         logger = logging.getLogger()
@@ -29,8 +30,7 @@ class AETrainer(BaseTrainer):
         optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Set learning rate scheduler
-        milestones = [250]
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.lr_milestones, gamma=0.1)
 
         # Training
         logger.info('Starting pretraining...')
@@ -39,7 +39,7 @@ class AETrainer(BaseTrainer):
         for epoch in range(self.n_epochs):
 
             scheduler.step()
-            if epoch in milestones:
+            if epoch in self.lr_milestones:
                 logger.info('  LR scheduler: new learning rate is %g' % float(scheduler.get_lr()[0]))
 
             loss_epoch = 0.0

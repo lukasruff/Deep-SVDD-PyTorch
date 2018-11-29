@@ -14,8 +14,10 @@ import numpy as np
 class DeepSVDDTrainer(BaseTrainer):
 
     def __init__(self, objective, R, c, nu: float, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150,
-                 batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
-        super().__init__(optimizer_name, lr, n_epochs, batch_size, weight_decay, device, n_jobs_dataloader)
+                 lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',
+                 n_jobs_dataloader: int = 0):
+        super().__init__(optimizer_name, lr, n_epochs, lr_milestones, batch_size, weight_decay, device,
+                         n_jobs_dataloader)
 
         assert objective in ('one-class', 'soft-boundary'), "Objective must be either 'one-class' or 'soft-boundary'."
         self.objective = objective
@@ -27,7 +29,6 @@ class DeepSVDDTrainer(BaseTrainer):
 
         # Optimization parameters
         self.warm_up_n_epochs = 10  # number of training epochs for soft-boundary Deep SVDD before radius R gets updated
-        self.milestones = [50]
 
         # Results
         self.train_time = None
@@ -48,7 +49,7 @@ class DeepSVDDTrainer(BaseTrainer):
         optimizer = optim.Adam(net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
         # Set learning rate scheduler
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.milestones, gamma=0.1)
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.lr_milestones, gamma=0.1)
 
         # Initialize hypersphere center c (if c not loaded)
         if self.c is None:
@@ -63,7 +64,7 @@ class DeepSVDDTrainer(BaseTrainer):
         for epoch in range(self.n_epochs):
 
             scheduler.step()
-            if epoch in self.milestones:
+            if epoch in self.lr_milestones:
                 logger.info('  LR scheduler: new learning rate is %g' % float(scheduler.get_lr()[0]))
 
             loss_epoch = 0.0
