@@ -22,6 +22,7 @@ class DeepSVDD(object):
         optimizer_name: A string indicating the optimizer to use for training the Deep SVDD network.
         ae_trainer: AETrainer to train an autoencoder in pretraining.
         ae_optimizer_name: A string indicating the optimizer to use for pretraining the autoencoder.
+        results: A dictionary to save the results.
     """
 
     def __init__(self, objective: str = 'one-class', nu: float = 0.1):
@@ -64,7 +65,7 @@ class DeepSVDD(object):
         self.trainer = DeepSVDDTrainer(self.objective, self.R, self.c, self.nu, optimizer_name, lr=lr,
                                        n_epochs=n_epochs, batch_size=batch_size, weight_decay=weight_decay,
                                        device=device, n_jobs_dataloader=n_jobs_dataloader)
-        # Get model
+        # Get the model
         self.net = self.trainer.train(dataset, self.net)
         self.R = float(self.trainer.R.cpu().data.numpy())  # get float
         self.c = self.trainer.c.cpu().data.numpy().tolist()  # get list

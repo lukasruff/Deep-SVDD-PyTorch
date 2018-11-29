@@ -41,6 +41,7 @@ class DeepSVDDTrainer(BaseTrainer):
         # Set device for network
         net = net.to(self.device)
 
+        # Get train data loader
         train_loader, _ = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
         # Set optimizer (Adam optimizer for now)
@@ -111,6 +112,7 @@ class DeepSVDDTrainer(BaseTrainer):
         # Set device for network
         net = net.to(self.device)
 
+        # Get test data loader
         _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
         # Testing

@@ -6,7 +6,6 @@ from sklearn.metrics import roc_auc_score
 import logging
 import time
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 
@@ -23,11 +22,8 @@ class AETrainer(BaseTrainer):
         # Set device for network
         ae_net = ae_net.to(self.device)
 
+        # Get train data loader
         train_loader, _ = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
-
-        # Set loss
-        # TODO: Implement choice of different losses (MSE, CrossEntropyLoss)
-        # criterion = nn.MSELoss()
 
         # Set optimizer (Adam optimizer for now)
         optimizer = optim.Adam(ae_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
@@ -58,7 +54,6 @@ class AETrainer(BaseTrainer):
 
                 # Update network parameters via backpropagation: forward + backward + optimize
                 outputs = ae_net(inputs)
-                # loss = criterion(outputs, inputs)
                 scores = torch.sum((outputs - inputs) ** 2, dim=tuple(range(1, outputs.dim())))
                 loss = torch.mean(scores)
                 loss.backward()
@@ -84,10 +79,8 @@ class AETrainer(BaseTrainer):
         # Set device for network
         ae_net = ae_net.to(self.device)
 
+        # Get test data loader
         _, test_loader = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
-
-        # Set loss
-        # criterion = nn.MSELoss(reduction='none')
 
         # Testing
         logger.info('Testing autoencoder...')
@@ -101,8 +94,6 @@ class AETrainer(BaseTrainer):
                 inputs, labels, idx = data
                 inputs = inputs.to(self.device)
                 outputs = ae_net(inputs)
-                # compute reconstruction errors
-                # scores = torch.sum(criterion(outputs, inputs), dim=tuple(range(1, outputs.dim())))
                 scores = torch.sum((outputs - inputs) ** 2, dim=tuple(range(1, outputs.dim())))
                 loss = torch.mean(scores)
 
