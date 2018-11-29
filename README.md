@@ -103,3 +103,7 @@ Example of the 32 most normal (left) and 32 most anomalous (right) examples per 
 anomaly scores.
 
 ![CIFAR-10](imgs/cifar10.png?raw=true "CIFAR-10")
+
+
+## License
+MIT
