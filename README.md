@@ -93,14 +93,14 @@ Autoencoder pretraining is used for parameter initialization.
 ## Examples
 
 ### MNIST
-Example of the 32 most normal (left) and 32 most anomalous (right) examples per class on MNIST according to Deep SVDD 
-anomaly scores.
+Example of the 32 most normal (left) and 32 most anomalous (right) test set examples per class on MNIST according to 
+Deep SVDD anomaly scores.
 
 ![MNIST](imgs/mnist.png?raw=true "MNIST")
 
 ### CIFAR-10
-Example of the 32 most normal (left) and 32 most anomalous (right) examples per class on CIFAR-10 according to Deep SVDD 
-anomaly scores.
+Example of the 32 most normal (left) and 32 most anomalous (right) test set examples per class on CIFAR-10 according to 
+Deep SVDD anomaly scores.
 
 ![CIFAR-10](imgs/cifar10.png?raw=true "CIFAR-10")
 
