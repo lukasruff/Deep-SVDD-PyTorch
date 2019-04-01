@@ -72,8 +72,17 @@ Have a look into `main.py` for all possible arguments and options.
 ### MNIST example
 ```
 cd <path-to-Deep-SVDD-PyTorch-directory>
+
 # activate virtual environment
-source myenv/bin/activate # or 'source activate myenv' for conda
+source myenv/bin/activate  # or 'source activate myenv' for conda
+
+# create folder for experimental output
+mkdir log/mnist_test
+
+# change to source directory
+cd src
+
+# run experiment
 python main.py mnist mnist_LeNet ../log/mnist_test ../data --objective one-class --lr 0.0001 --n_epochs 150 --lr_milestone 50 --batch_size 200 --weight_decay 0.5e-6 --pretrain True --ae_lr 0.0001 --ae_n_epochs 150 --ae_lr_milestone 50 --ae_batch_size 200 --ae_weight_decay 0.5e-3 --normal_class 3;
 ```
 This example trains a One-Class Deep SVDD model where digit 3 (`--normal_class 3`) is considered to be the normal class. Autoencoder
@@ -82,8 +91,17 @@ pretraining is used for parameter initialization.
 ### CIFAR-10 example
 ```
 cd <path-to-Deep-SVDD-PyTorch-directory>
+
 # activate virtual environment
-source myenv/bin/activate # or 'source activate myenv' for conda
+source myenv/bin/activate  # or 'source activate myenv' for conda
+
+# create folder for experimental output
+mkdir log/cifar10_test
+
+# change to source directory
+cd src
+
+# run experiment
 python main.py cifar10 cifar10_LeNet ../log/cifar10_test ../data --objective one-class --lr 0.0001 --n_epochs 150 --lr_milestone 50 --batch_size 200 --weight_decay 0.5e-6 --pretrain True --ae_lr 0.0001 --ae_n_epochs 350 --ae_lr_milestone 250 --ae_batch_size 200 --ae_weight_decay 0.5e-6 --normal_class 3;
 ```
 This example trains a One-Class Deep SVDD model where cats (`--normal_class 3`) is considered to be the normal class. 
