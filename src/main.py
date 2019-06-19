@@ -15,7 +15,7 @@ from datasets.main import load_dataset
 ################################################################################
 @click.command()
 @click.argument('dataset_name', type=click.Choice(['mnist', 'cifar10']))
-@click.argument('net_name', type=click.Choice(['mnist_LeNet', 'cifar10_LeNet']))
+@click.argument('net_name', type=click.Choice(['mnist_LeNet', 'cifar10_LeNet', 'cifar10_LeNet_ELU']))
 @click.argument('xp_path', type=click.Path(exists=True))
 @click.argument('data_path', type=click.Path(exists=True))
 @click.option('--load_config', type=click.Path(exists=True), default=None,
@@ -27,7 +27,7 @@ from datasets.main import load_dataset
 @click.option('--nu', type=float, default=0.1, help='Deep SVDD hyperparameter nu (must be 0 < nu <= 1).')
 @click.option('--device', type=str, default='cuda', help='Computation device to use ("cpu", "cuda", "cuda:2", etc.).')
 @click.option('--seed', type=int, default=-1, help='Set seed. If -1, use randomization.')
-@click.option('--optimizer_name', type=click.Choice(['adam']), default='adam',
+@click.option('--optimizer_name', type=click.Choice(['adam', 'amsgrad']), default='adam',
               help='Name of the optimizer to use for Deep SVDD network training.')
 @click.option('--lr', type=float, default=0.001,
               help='Initial learning rate for Deep SVDD network training. Default=0.001')
@@ -39,7 +39,7 @@ from datasets.main import load_dataset
               help='Weight decay (L2 penalty) hyperparameter for Deep SVDD objective.')
 @click.option('--pretrain', type=bool, default=True,
               help='Pretrain neural network parameters via autoencoder.')
-@click.option('--ae_optimizer_name', type=click.Choice(['adam']), default='adam',
+@click.option('--ae_optimizer_name', type=click.Choice(['adam', 'amsgrad']), default='adam',
               help='Name of the optimizer to use for autoencoder pretraining.')
 @click.option('--ae_lr', type=float, default=0.001,
               help='Initial learning rate for autoencoder pretraining. Default=0.001')
