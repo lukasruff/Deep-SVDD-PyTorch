@@ -13,9 +13,10 @@ import numpy as np
 class AETrainer(BaseTrainer):
 
     def __init__(self, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150, lr_milestones: tuple = (),
-                 batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0):
+                 batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda', n_jobs_dataloader: int = 0, resume_path=None):
         super().__init__(optimizer_name, lr, n_epochs, lr_milestones, batch_size, weight_decay, device,
                          n_jobs_dataloader)
+        self.resume_path = resume_path
 
     def train(self, dataset: BaseADDataset, ae_net: BaseNet):
         logger = logging.getLogger()
@@ -32,13 +33,20 @@ class AETrainer(BaseTrainer):
 
         # Set learning rate scheduler
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.lr_milestones, gamma=0.1)
+        start_epoch = 0
+
+        if self.resume_path is not None:
+            checkpoint = torch.load(self.resume_path)
+            ae_net.load_state_dict(checkpoint['model'])
+            optimizer.load_state_dict(checkpoint['opt'])
+            scheduler.load_state_dict(checkpoint['scheduler'])
+            start_epoch = checkpoint['epoch']
 
         # Training
         logger.info('Starting pretraining...')
         start_time = time.time()
         ae_net.train()
-        for epoch in range(self.n_epochs):
-
+        for epoch in range(start_epoch, self.n_epochs):
             scheduler.step()
             if epoch in self.lr_milestones:
                 logger.info('  LR scheduler: new learning rate is %g' % float(scheduler.get_lr()[0]))
@@ -71,6 +79,12 @@ class AETrainer(BaseTrainer):
         pretrain_time = time.time() - start_time
         logger.info('Pretraining time: %.3f' % pretrain_time)
         logger.info('Finished pretraining.')
+        if start_epoch < self.n_epochs:
+            torch.save({'model': ae_net.state_dict(),
+                        'opt': optimizer.state_dict(),
+                        'scheduler': scheduler.state_dict(),
+                        'epoch': self.n_epochs,
+                        'time': pretrain_time}, 'pretrained_ae.pt')
 
         return ae_net
 

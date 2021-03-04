@@ -22,6 +22,8 @@ from datasets.main import load_dataset
               help='Config JSON-file path (default: None).')
 @click.option('--load_model', type=click.Path(exists=True), default=None,
               help='Model file path (default: None).')
+@click.option('--load_ae_model', type=click.Path(exists=True), default=None,
+              help='Pretrained model file path (default: None).')
 @click.option('--objective', type=click.Choice(['one-class', 'soft-boundary']), default='one-class',
               help='Specify Deep SVDD objective ("one-class" or "soft-boundary").')
 @click.option('--nu', type=float, default=0.1, help='Deep SVDD hyperparameter nu (must be 0 < nu <= 1).')
@@ -53,7 +55,7 @@ from datasets.main import load_dataset
               help='Number of workers for data loading. 0 means that the data will be loaded in the main process.')
 @click.option('--normal_class', type=int, default=0,
               help='Specify the normal class of the dataset (all other classes are considered anomalous).')
-def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, objective, nu, device, seed,
+def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, load_ae_model, objective, nu, device, seed,
          optimizer_name, lr, n_epochs, lr_milestone, batch_size, weight_decay, pretrain, ae_optimizer_name, ae_lr,
          ae_n_epochs, ae_lr_milestone, ae_batch_size, ae_weight_decay, n_jobs_dataloader, normal_class):
     """
@@ -130,7 +132,6 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
         logger.info('Pretraining learning rate scheduler milestones: %s' % (cfg.settings['ae_lr_milestone'],))
         logger.info('Pretraining batch size: %d' % cfg.settings['ae_batch_size'])
         logger.info('Pretraining weight decay: %g' % cfg.settings['ae_weight_decay'])
-
         # Pretrain model on dataset (via autoencoder)
         deep_SVDD.pretrain(dataset,
                            optimizer_name=cfg.settings['ae_optimizer_name'],
@@ -140,7 +141,8 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
                            batch_size=cfg.settings['ae_batch_size'],
                            weight_decay=cfg.settings['ae_weight_decay'],
                            device=device,
-                           n_jobs_dataloader=n_jobs_dataloader)
+                           n_jobs_dataloader=n_jobs_dataloader,
+                           resume_path=load_ae_model)
 
     # Log training details
     logger.info('Training optimizer: %s' % cfg.settings['optimizer_name'])
@@ -172,12 +174,12 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     if dataset_name in ('mnist', 'cifar10'):
 
         if dataset_name == 'mnist':
-            X_normals = dataset.test_set.test_data[idx_sorted[:32], ...].unsqueeze(1)
-            X_outliers = dataset.test_set.test_data[idx_sorted[-32:], ...].unsqueeze(1)
+            X_normals = dataset.test_set.data[idx_sorted[:32], ...].unsqueeze(1)
+            X_outliers = dataset.test_set.data[idx_sorted[-32:], ...].unsqueeze(1)
 
         if dataset_name == 'cifar10':
-            X_normals = torch.tensor(np.transpose(dataset.test_set.test_data[idx_sorted[:32], ...], (0, 3, 1, 2)))
-            X_outliers = torch.tensor(np.transpose(dataset.test_set.test_data[idx_sorted[-32:], ...], (0, 3, 1, 2)))
+            X_normals = torch.tensor(np.transpose(dataset.test_set.data[idx_sorted[:32], ...], (0, 3, 1, 2)))
+            X_outliers = torch.tensor(np.transpose(dataset.test_set.data[idx_sorted[-32:], ...], (0, 3, 1, 2)))
 
         plot_images_grid(X_normals, export_img=xp_path + '/normals', title='Most normal examples', padding=2)
         plot_images_grid(X_outliers, export_img=xp_path + '/outliers', title='Most anomalous examples', padding=2)
