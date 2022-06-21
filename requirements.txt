@@ -1,5 +1,5 @@
 requests==2.20.1
-numpy==1.15.2
+numpy==1.22.0
 scipy==1.1.0
 scikit-learn==0.20.0
 certifi==2018.10.15
